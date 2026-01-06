@@ -1,0 +1,383 @@
+import { 
+  Asset, 
+  WorkOrder, 
+  Alert, 
+  TelemetryReading, 
+  TBMPolicy, 
+  CBMPolicy,
+  DashboardStats 
+} from '@/types/maintenance';
+
+export const mockAssets: Asset[] = [
+  {
+    id: 'AST-001',
+    name: 'AHU-01 Main Building',
+    type: 'AHU',
+    location: 'Building A - Floor 1',
+    status: 'online',
+    specifications: {
+      'Cooling Capacity': '50 kW',
+      'Air Flow': '8000 CFM',
+      'Power': '15 kW',
+    },
+    lastMaintenance: '2024-12-15',
+    nextMaintenance: '2025-03-15',
+    installDate: '2020-06-01',
+    manufacturer: 'Carrier',
+    model: 'AHU-50K',
+  },
+  {
+    id: 'AST-002',
+    name: 'Chiller-01 Central',
+    type: 'Chiller',
+    location: 'Rooftop',
+    status: 'warning',
+    specifications: {
+      'Capacity': '500 TR',
+      'Refrigerant': 'R-134a',
+      'Power': '350 kW',
+    },
+    lastMaintenance: '2024-11-20',
+    nextMaintenance: '2025-02-20',
+    installDate: '2019-03-15',
+    manufacturer: 'Trane',
+    model: 'CGAM-500',
+  },
+  {
+    id: 'AST-003',
+    name: 'FCU-101 Office Zone',
+    type: 'FCU',
+    location: 'Building A - Floor 10',
+    status: 'online',
+    specifications: {
+      'Capacity': '5 kW',
+      'Air Flow': '800 CFM',
+      'Power': '0.5 kW',
+    },
+    lastMaintenance: '2024-12-01',
+    nextMaintenance: '2025-03-01',
+    installDate: '2021-01-10',
+    manufacturer: 'Daikin',
+    model: 'FWF-05',
+  },
+  {
+    id: 'AST-004',
+    name: 'Pump-CW-01',
+    type: 'Pump',
+    location: 'Basement - Pump Room',
+    status: 'critical',
+    specifications: {
+      'Flow Rate': '200 m³/h',
+      'Head': '25 m',
+      'Power': '22 kW',
+    },
+    lastMaintenance: '2024-10-05',
+    nextMaintenance: '2025-01-05',
+    installDate: '2018-08-20',
+    manufacturer: 'Grundfos',
+    model: 'NB-80-200',
+  },
+  {
+    id: 'AST-005',
+    name: 'Compressor-01',
+    type: 'Compressor',
+    location: 'Utility Building',
+    status: 'online',
+    specifications: {
+      'Capacity': '100 CFM',
+      'Pressure': '8 bar',
+      'Power': '18.5 kW',
+    },
+    lastMaintenance: '2024-12-20',
+    nextMaintenance: '2025-03-20',
+    installDate: '2022-05-15',
+    manufacturer: 'Atlas Copco',
+    model: 'GA-18',
+  },
+];
+
+export const mockWorkOrders: WorkOrder[] = [
+  {
+    id: 'WO-2025-001',
+    title: 'Quarterly Maintenance - AHU-01',
+    assetId: 'AST-001',
+    assetName: 'AHU-01 Main Building',
+    source: 'TBM',
+    status: 'in_progress',
+    priority: 'medium',
+    createdAt: '2025-01-02T08:00:00Z',
+    dueDate: '2025-01-10T17:00:00Z',
+    assignee: 'Nguyen Van A',
+    checklist: [
+      { id: 'CL-001', title: 'Kiểm tra bộ lọc gió', completed: true },
+      { id: 'CL-002', title: 'Vệ sinh dàn trao đổi nhiệt', completed: true },
+      { id: 'CL-003', title: 'Kiểm tra motor quạt', completed: false },
+      { id: 'CL-004', title: 'Đo dòng điện vận hành', completed: false },
+      { id: 'CL-005', title: 'Kiểm tra van điều khiển', completed: false },
+    ],
+  },
+  {
+    id: 'WO-2025-002',
+    title: 'CBM Alert: High Temperature - Chiller-01',
+    assetId: 'AST-002',
+    assetName: 'Chiller-01 Central',
+    source: 'CBM',
+    status: 'open',
+    priority: 'high',
+    createdAt: '2025-01-05T14:30:00Z',
+    dueDate: '2025-01-06T17:00:00Z',
+    triggerInfo: {
+      metric: 'temperature',
+      value: 45.5,
+      threshold: 40,
+      chartLink: '/telemetry?asset=AST-002&metric=temperature',
+    },
+    checklist: [
+      { id: 'CL-006', title: 'Kiểm tra mức gas lạnh', completed: false },
+      { id: 'CL-007', title: 'Kiểm tra bơm nước giải nhiệt', completed: false },
+      { id: 'CL-008', title: 'Vệ sinh condenser', completed: false },
+    ],
+  },
+  {
+    id: 'WO-2025-003',
+    title: 'Emergency Repair - Pump-CW-01',
+    assetId: 'AST-004',
+    assetName: 'Pump-CW-01',
+    source: 'Manual',
+    status: 'overdue',
+    priority: 'critical',
+    createdAt: '2025-01-03T09:00:00Z',
+    dueDate: '2025-01-04T12:00:00Z',
+    assignee: 'Tran Van B',
+    checklist: [
+      { id: 'CL-009', title: 'Kiểm tra rò rỉ seal', completed: true },
+      { id: 'CL-010', title: 'Thay thế mechanical seal', completed: false },
+      { id: 'CL-011', title: 'Cân chỉnh trục bơm', completed: false },
+    ],
+    notes: 'Phát hiện rung động bất thường, cần thay seal khẩn cấp',
+  },
+  {
+    id: 'WO-2025-004',
+    title: 'Monthly Check - FCU-101',
+    assetId: 'AST-003',
+    assetName: 'FCU-101 Office Zone',
+    source: 'TBM',
+    status: 'done',
+    priority: 'low',
+    createdAt: '2025-01-01T08:00:00Z',
+    dueDate: '2025-01-03T17:00:00Z',
+    completedAt: '2025-01-02T15:30:00Z',
+    assignee: 'Le Thi C',
+    checklist: [
+      { id: 'CL-012', title: 'Vệ sinh bộ lọc', completed: true },
+      { id: 'CL-013', title: 'Kiểm tra thermostat', completed: true },
+      { id: 'CL-014', title: 'Test chế độ vận hành', completed: true },
+    ],
+  },
+  {
+    id: 'WO-2025-005',
+    title: 'CBM Alert: High Current - Compressor-01',
+    assetId: 'AST-005',
+    assetName: 'Compressor-01',
+    source: 'CBM',
+    status: 'open',
+    priority: 'medium',
+    createdAt: '2025-01-06T10:00:00Z',
+    dueDate: '2025-01-08T17:00:00Z',
+    triggerInfo: {
+      metric: 'current',
+      value: 42,
+      threshold: 38,
+      chartLink: '/telemetry?asset=AST-005&metric=current',
+    },
+    checklist: [
+      { id: 'CL-015', title: 'Kiểm tra bộ lọc khí nạp', completed: false },
+      { id: 'CL-016', title: 'Kiểm tra áp suất đầu ra', completed: false },
+      { id: 'CL-017', title: 'Kiểm tra dầu bôi trơn', completed: false },
+    ],
+  },
+];
+
+export const mockAlerts: Alert[] = [
+  {
+    id: 'ALT-001',
+    assetId: 'AST-002',
+    assetName: 'Chiller-01 Central',
+    metric: 'temperature',
+    value: 45.5,
+    threshold: 40,
+    severity: 'high',
+    timestamp: '2025-01-05T14:30:00Z',
+    acknowledged: false,
+  },
+  {
+    id: 'ALT-002',
+    assetId: 'AST-004',
+    assetName: 'Pump-CW-01',
+    metric: 'vibration',
+    value: 8.5,
+    threshold: 5,
+    severity: 'critical',
+    timestamp: '2025-01-05T10:15:00Z',
+    acknowledged: true,
+  },
+  {
+    id: 'ALT-003',
+    assetId: 'AST-005',
+    assetName: 'Compressor-01',
+    metric: 'current',
+    value: 42,
+    threshold: 38,
+    severity: 'medium',
+    timestamp: '2025-01-06T10:00:00Z',
+    acknowledged: false,
+  },
+  {
+    id: 'ALT-004',
+    assetId: 'AST-001',
+    assetName: 'AHU-01 Main Building',
+    metric: 'pressure',
+    value: 2.8,
+    threshold: 3,
+    severity: 'low',
+    timestamp: '2025-01-04T16:45:00Z',
+    acknowledged: true,
+    resolvedAt: '2025-01-04T18:00:00Z',
+  },
+];
+
+export const mockTBMPolicies: TBMPolicy[] = [
+  {
+    id: 'TBM-001',
+    assetId: 'AST-001',
+    intervalDays: 90,
+    nextDueDate: '2025-03-15',
+    lastExecuted: '2024-12-15',
+    isActive: true,
+    checklistTemplate: [
+      'Kiểm tra bộ lọc gió',
+      'Vệ sinh dàn trao đổi nhiệt',
+      'Kiểm tra motor quạt',
+      'Đo dòng điện vận hành',
+      'Kiểm tra van điều khiển',
+    ],
+  },
+  {
+    id: 'TBM-002',
+    assetId: 'AST-002',
+    intervalDays: 90,
+    nextDueDate: '2025-02-20',
+    lastExecuted: '2024-11-20',
+    isActive: true,
+    checklistTemplate: [
+      'Kiểm tra mức gas lạnh',
+      'Vệ sinh condenser',
+      'Kiểm tra bơm tuần hoàn',
+      'Đo áp suất hệ thống',
+    ],
+  },
+  {
+    id: 'TBM-003',
+    assetId: 'AST-003',
+    intervalDays: 30,
+    nextDueDate: '2025-02-01',
+    lastExecuted: '2025-01-01',
+    isActive: true,
+    checklistTemplate: [
+      'Vệ sinh bộ lọc',
+      'Kiểm tra thermostat',
+      'Test chế độ vận hành',
+    ],
+  },
+];
+
+export const mockCBMPolicies: CBMPolicy[] = [
+  {
+    id: 'CBM-001',
+    assetId: 'AST-002',
+    metric: 'temperature',
+    threshold: 40,
+    operator: 'gt',
+    durationMinutes: 60,
+    priority: 1,
+    isActive: true,
+    overrideTBM: true,
+  },
+  {
+    id: 'CBM-002',
+    assetId: 'AST-004',
+    metric: 'vibration',
+    threshold: 5,
+    operator: 'gt',
+    durationMinutes: 30,
+    priority: 1,
+    isActive: true,
+    overrideTBM: true,
+  },
+  {
+    id: 'CBM-003',
+    assetId: 'AST-005',
+    metric: 'current',
+    threshold: 38,
+    operator: 'gt',
+    durationMinutes: 120,
+    priority: 2,
+    isActive: true,
+    overrideTBM: false,
+  },
+];
+
+// Generate telemetry data for charts
+export const generateTelemetryData = (
+  assetId: string,
+  metric: string,
+  hours: number = 24
+): TelemetryReading[] => {
+  const data: TelemetryReading[] = [];
+  const now = new Date();
+  const baseValues: Record<string, { base: number; variance: number; unit: string }> = {
+    temperature: { base: 35, variance: 15, unit: '°C' },
+    current: { base: 30, variance: 15, unit: 'A' },
+    pressure: { base: 5, variance: 2, unit: 'bar' },
+    vibration: { base: 2, variance: 4, unit: 'mm/s' },
+    humidity: { base: 60, variance: 20, unit: '%' },
+  };
+
+  const config = baseValues[metric] || { base: 50, variance: 20, unit: '' };
+
+  for (let i = hours * 4; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 15 * 60 * 1000);
+    const value = config.base + (Math.random() - 0.3) * config.variance;
+    
+    data.push({
+      timestamp: timestamp.toISOString(),
+      assetId,
+      metric: metric as any,
+      value: Math.round(value * 10) / 10,
+      unit: config.unit,
+    });
+  }
+
+  return data;
+};
+
+export const mockDashboardStats: DashboardStats = {
+  totalWO: 48,
+  openWO: 12,
+  inProgressWO: 8,
+  doneWO: 25,
+  overdueWO: 3,
+  tbmCount: 28,
+  cbmCount: 15,
+  manualCount: 5,
+  criticalAlerts: 2,
+};
+
+export const calendarEvents = [
+  { date: '2025-01-10', title: 'AHU-01 Quarterly', type: 'TBM' as const },
+  { date: '2025-01-15', title: 'Chiller-01 Check', type: 'TBM' as const },
+  { date: '2025-01-20', title: 'FCU Zone A', type: 'TBM' as const },
+  { date: '2025-01-25', title: 'Pump System', type: 'TBM' as const },
+  { date: '2025-02-01', title: 'FCU-101 Monthly', type: 'TBM' as const },
+  { date: '2025-02-20', title: 'Chiller-01 Quarterly', type: 'TBM' as const },
+];
